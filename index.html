@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#8B0000">
+<meta name="description" content="Turno Fácil — Registro de turno fiscal">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Turno Fácil">
+<title>Turno Fácil</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-title">
+        <i class="ti ti-shield-check" aria-hidden="true"></i>
+        <span>Turno Fácil</span>
+      </div>
+      <div class="header-sub">by Víctor Siu</div>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab active" onclick="showTab('nuevo',this)" role="tab" aria-selected="true">
+      <i class="ti ti-plus" aria-hidden="true"></i><span>Nuevo</span>
+    </button>
+    <button class="tab" onclick="showTab('alertas',this)" role="tab" aria-selected="false">
+      <i class="ti ti-bell" aria-hidden="true"></i><span>Alertas</span>
+      <span id="badge-alertas" class="badge-nav"></span>
+    </button>
+    <button class="tab" onclick="showTab('historial',this)" role="tab" aria-selected="false">
+      <i class="ti ti-list" aria-hidden="true"></i><span>Historial</span>
+    </button>
+  </nav>
+
+  <main class="content">
+
+    <!-- NUEVO CASO -->
+    <section id="panel-nuevo" class="panel active" aria-label="Nuevo caso">
+      <div class="card">
+        <div class="section-label">Aviso policial</div>
+        <div class="row2">
+          <div class="field">
+            <label for="f-fecha-aviso">Fecha del aviso</label>
+            <input type="date" id="f-fecha-aviso">
+          </div>
+          <div class="field">
+            <label for="f-hora-aviso">Hora del aviso</label>
+            <input type="time" id="f-hora-aviso">
+          </div>
+        </div>
+
+        <div class="section-label" style="margin-top:1.25rem">Efectivo policial</div>
+        <div class="field">
+          <label for="f-pol-nombre">Nombre completo</label>
+          <input type="text" id="f-pol-nombre" placeholder="Apellidos y nombres" autocomplete="off">
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="f-pol-dni">DNI</label>
+            <input type="text" id="f-pol-dni" maxlength="8" placeholder="12345678" inputmode="numeric">
+          </div>
+          <div class="field">
+            <label for="f-pol-cel">Celular</label>
+            <input type="tel" id="f-pol-cel" placeholder="9XX XXX XXX">
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:4px">
+          <label for="f-comisaria">Comisaría</label>
+          <select id="f-comisaria">
+            <option value="">— Seleccionar —</option>
+            <option>26 de Octubre</option>
+            <option>Algarrobos</option>
+            <option>Cucungará</option>
+            <option>DIVINCRI</option>
+            <option>Piura</option>
+            <option>San Martín</option>
+          </select>
+        </div>
+
+        <div class="section-label" style="margin-top:1.25rem">Hecho</div>
+        <div class="field">
+          <label for="f-delito">Delito</label>
+          <select id="f-delito">
+            <option value="">— Seleccionar —</option>
+            <option>Extorsión</option>
+            <option>Homicidio</option>
+            <option>Hurto agravado</option>
+            <option>Lesiones culposas</option>
+            <option>Levantamiento de cadáver</option>
+            <option>Microcomercialización</option>
+            <option>Receptación</option>
+            <option>Robo agravado</option>
+            <option>Otro</option>
+          </select>
+        </div>
+        <div id="f-delito-otro-wrap" class="field" style="display:none">
+          <label for="f-delito-otro">Especificar delito</label>
+          <input type="text" id="f-delito-otro" placeholder="Describa el delito">
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="f-fecha-hecho">Fecha del hecho</label>
+            <input type="date" id="f-fecha-hecho">
+          </div>
+          <div class="field">
+            <label for="f-hora-hecho">Hora del hecho</label>
+            <input type="time" id="f-hora-hecho">
+          </div>
+        </div>
+
+        <div class="section-label" style="margin-top:1.25rem">Detención</div>
+        <div class="row2">
+          <div class="field">
+            <label for="f-fecha-det">Fecha de detención</label>
+            <input type="date" id="f-fecha-det">
+          </div>
+          <div class="field">
+            <label for="f-hora-det">Hora de detención</label>
+            <input type="time" id="f-hora-det">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="f-obs">Observaciones <span style="font-weight:400;color:var(--text-muted)">(opcional)</span></label>
+          <textarea id="f-obs" rows="3" placeholder="Notas adicionales sobre el caso..."></textarea>
+          <div class="counter" id="obs-counter">0 / 400</div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" onclick="guardarCaso()">
+            <i class="ti ti-device-floppy" aria-hidden="true"></i> Guardar caso
+          </button>
+          <button class="btn" onclick="limpiarFormulario()">
+            <i class="ti ti-refresh" aria-hidden="true"></i> Limpiar
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ALERTAS -->
+    <section id="panel-alertas" class="panel" aria-label="Alertas 48 horas">
+      <div class="card">
+        <div class="card-header-row">
+          <span class="section-label" style="margin:0">Detenidos — plazo 48 horas</span>
+          <button class="btn btn-sm" onclick="renderAlertas()">
+            <i class="ti ti-refresh" aria-hidden="true"></i> Actualizar
+          </button>
+        </div>
+        <div id="lista-alertas" style="margin-top:12px"></div>
+      </div>
+    </section>
+
+    <!-- HISTORIAL -->
+    <section id="panel-historial" class="panel" aria-label="Historial de casos">
+      <div id="historial-header" class="historial-toolbar">
+        <input type="search" id="buscador" placeholder="Buscar delito, comisaría, efectivo..."
+          oninput="renderHistorial()" autocomplete="off">
+        <button class="btn" onclick="exportarTXT()">
+          <i class="ti ti-download" aria-hidden="true"></i> Exportar
+        </button>
+      </div>
+      <div id="lista-historial"></div>
+      <div id="detalle-caso" class="detalle-panel"></div>
+    </section>
+
+  </main>
+</div>
+
+<div id="toast" role="alert" aria-live="polite"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

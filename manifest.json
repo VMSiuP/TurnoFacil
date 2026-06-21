@@ -1,0 +1,24 @@
+{
+  "name": "Turno Fácil",
+  "short_name": "Turno Fácil",
+  "description": "Registro de turno fiscal — by Víctor Siu",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#8B0000",
+  "theme_color": "#8B0000",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
