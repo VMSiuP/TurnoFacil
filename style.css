@@ -424,6 +424,85 @@ textarea { resize: vertical; line-height: 1.5; }
   box-shadow: 0 4px 16px rgba(0,0,0,0.3);
 }
 
+/* ===== Sin detenido toggle ===== */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  border: 0.5px solid var(--gray-border-strong);
+  background: var(--surface);
+  cursor: pointer;
+  user-select: none;
+  margin-bottom: 12px;
+  transition: background .15s, border-color .15s;
+}
+
+.toggle-row:hover { background: var(--gray-light); }
+
+.toggle-row.checked {
+  border-color: var(--red);
+  background: var(--red-light);
+}
+
+.checkmark-box {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 0.5px solid var(--gray-border-strong);
+  background: var(--surface);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .15s;
+}
+
+.toggle-row.checked .checkmark-box {
+  background: var(--red);
+  border-color: var(--red);
+}
+
+.toggle-row.checked .checkmark-box::after {
+  content: '';
+  width: 10px;
+  height: 6px;
+  border-left: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(-45deg) translate(1px, -1px);
+  display: block;
+}
+
+.toggle-lbl { font-size: 14px; font-weight: 500; color: var(--text); }
+.toggle-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+#det-fields {
+  overflow: hidden;
+  max-height: 200px;
+  opacity: 1;
+  transition: max-height .3s ease, opacity .25s ease;
+}
+
+#det-fields.oculto {
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sin-det-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+  background: var(--gray-light);
+  border: 0.5px solid var(--gray-border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  margin-bottom: 4px;
+}
+
 /* ===== Install banner ===== */
 #install-banner {
   display: none;
