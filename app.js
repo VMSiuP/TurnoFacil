@@ -51,7 +51,8 @@ function horasRestantes(fechaDet, horaDet) {
   return (limite - Date.now()) / 3600000;
 }
 
-function badgeStatus(h) {
+function badgeStatus(h, esSinDet) {
+  if (esSinDet) return { cls: 'badge-gray', txt: 'Sin detenido' };
   if (h === null) return { cls: 'badge-gray', txt: 'Sin detención' };
   if (h < 0)  return { cls: 'badge-red',   txt: 'Vencido' };
   if (h < 6)  return { cls: 'badge-red',   txt: '< 6h' };
@@ -67,6 +68,31 @@ function estadoTexto(h) {
 }
 
 // ===== Formulario =====
+// ===== Sin detenido =====
+let sinDetenido = false;
+
+function toggleSinDetenido() {
+  sinDetenido = !sinDetenido;
+  const row = document.getElementById('toggle-sin-det');
+  const fields = document.getElementById('det-fields');
+  const aviso = document.getElementById('sin-det-aviso');
+  const fd = document.getElementById('f-fecha-det');
+  const hd = document.getElementById('f-hora-det');
+
+  if (sinDetenido) {
+    row.classList.add('checked');
+    fields.classList.add('oculto');
+    aviso.style.display = 'flex';
+    fd.value = ''; hd.value = '';
+    fd.disabled = true; hd.disabled = true;
+  } else {
+    row.classList.remove('checked');
+    fields.classList.remove('oculto');
+    aviso.style.display = 'none';
+    fd.disabled = false; hd.disabled = false;
+  }
+}
+
 document.getElementById('f-delito').addEventListener('change', function () {
   document.getElementById('f-delito-otro-wrap').style.display =
     this.value === 'Otro' ? 'block' : 'none';
@@ -90,6 +116,8 @@ function limpiarFormulario() {
   set('f-delito', '');
   document.getElementById('f-delito-otro-wrap').style.display = 'none';
   document.getElementById('obs-counter').textContent = '0 / 400';
+  // Reset sin detenido
+  if (sinDetenido) toggleSinDetenido();
   preFill();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -114,7 +142,7 @@ function guardarCaso() {
   if (!polNombre)  { toast('⚠ Ingresa el nombre del efectivo policial'); return; }
   if (!comisaria)  { toast('⚠ Selecciona la comisaría'); return; }
   if (!delito)     { toast('⚠ Selecciona o especifica el delito'); return; }
-  if (!fechaDet || !horaDet) { toast('⚠ Ingresa fecha y hora de la detención'); return; }
+  if (!sinDetenido && (!fechaDet || !horaDet)) { toast('⚠ Ingresa fecha y hora de la detención'); return; }
 
   const caso = {
     id: Date.now(),
@@ -122,7 +150,9 @@ function guardarCaso() {
     polNombre, polDni, polCelular,
     comisaria, delito,
     fechaHecho, horaHecho,
-    fechaDet, horaDet,
+    fechaDet: sinDetenido ? '' : fechaDet,
+    horaDet:  sinDetenido ? '' : horaDet,
+    sinDetenido,
     obs,
     creadoEn: new Date().toISOString()
   };
@@ -137,6 +167,7 @@ function guardarCaso() {
 // ===== Badge de alertas =====
 function updateBadge() {
   const urgentes = casos.filter(x => {
+    if (x.sinDetenido) return false;
     const h = horasRestantes(x.fechaDet, x.horaDet);
     return h !== null && h >= 0 && h < 12;
   }).length;
@@ -151,7 +182,7 @@ function updateBadge() {
 
 // ===== Alertas 48h =====
 function renderAlertas() {
-  const conDet = casos.filter(x => x.fechaDet && x.horaDet);
+  const conDet = casos.filter(x => !x.sinDetenido && x.fechaDet && x.horaDet);
   const el = document.getElementById('lista-alertas');
 
   if (!conDet.length) {
@@ -211,7 +242,7 @@ function renderHistorial() {
 
   el.innerHTML = filtrados.map(x => {
     const h = horasRestantes(x.fechaDet, x.horaDet);
-    const bs = badgeStatus(h);
+    const bs = badgeStatus(h, x.sinDetenido);
     return `<div class="caso-item" onclick="verCaso(${x.id})">
       <div style="flex:1;min-width:0">
         <div class="caso-delito">${x.delito}</div>
@@ -231,7 +262,7 @@ function verCaso(id) {
   if (!x) return;
 
   const h = horasRestantes(x.fechaDet, x.horaDet);
-  const bs = badgeStatus(h);
+  const bs = badgeStatus(h, x.sinDetenido);
 
   const row = (label, val) => val
     ? `<div class="field-row"><span class="field-lbl">${label}</span><span>${val}</span></div>`
@@ -256,8 +287,10 @@ function verCaso(id) {
     ${row('Celular', x.polCelular)}
     ${row('Comisaría', x.comisaria)}
     ${row('Fecha / hora hecho', x.fechaHecho ? formatFecha(x.fechaHecho) + ' ' + x.horaHecho : '')}
-    ${row('Fecha / hora detención', x.fechaDet ? formatFecha(x.fechaDet) + ' ' + x.horaDet : '')}
-    ${row('Estado 48h', x.fechaDet ? estadoTexto(h) : '')}
+    ${x.sinDetenido
+      ? row('Detención', 'Sin detenido')
+      : row('Fecha / hora detención', x.fechaDet ? formatFecha(x.fechaDet) + ' ' + x.horaDet : '')}
+    ${(!x.sinDetenido && x.fechaDet) ? row('Estado 48h', estadoTexto(h)) : ''}
     ${row('Observaciones', x.obs)}
     <div class="actions" style="margin-top:14px;flex-wrap:wrap">
       <button class="btn" onclick="compartirCaso(${x.id})">
@@ -302,8 +335,8 @@ function compartirCaso(id) {
     x.polCelular ? `📱 *Celular:* ${x.polCelular}` : '',
     `🏛 *Comisaría:* ${x.comisaria}`,
     x.fechaHecho ? `⏰ *Hecho:* ${formatFecha(x.fechaHecho)} ${x.horaHecho}` : '',
-    x.fechaDet   ? `🔒 *Detención:* ${formatFecha(x.fechaDet)} ${x.horaDet}` : '',
-    x.fechaDet   ? `⏱ *Estado 48h:* ${estadoTexto(h)}` : '',
+    x.sinDetenido ? `🔒 *Detención:* Sin detenido` : (x.fechaDet ? `🔒 *Detención:* ${formatFecha(x.fechaDet)} ${x.horaDet}` : ''),
+    (!x.sinDetenido && x.fechaDet) ? `⏱ *Estado 48h:* ${estadoTexto(h)}` : '',
     x.obs        ? `📝 *Obs:* ${x.obs}` : '',
   ].filter(Boolean).join('\n');
 
@@ -327,8 +360,12 @@ function exportarTXT() {
     if (x.polCelular) lines.push(`Celular: ${x.polCelular}`);
     lines.push(`Comisaría: ${x.comisaria}`);
     if (x.fechaHecho) lines.push(`Hecho: ${formatFecha(x.fechaHecho)} ${x.horaHecho}`);
-    if (x.fechaDet)   lines.push(`Detención: ${formatFecha(x.fechaDet)} ${x.horaDet}`);
-    if (x.fechaDet)   lines.push(`Estado 48h: ${estadoTexto(h)}`);
+    if (x.sinDetenido) {
+      lines.push('Detención: Sin detenido');
+    } else {
+      if (x.fechaDet) lines.push(`Detención: ${formatFecha(x.fechaDet)} ${x.horaDet}`);
+      if (x.fechaDet) lines.push(`Estado 48h: ${estadoTexto(h)}`);
+    }
     if (x.obs)        lines.push(`Observaciones: ${x.obs}`);
     lines.push('');
   });
