@@ -1,4 +1,4 @@
-const CACHE = 'turno-facil-v1';
+const CACHE = 'turno-facil-v2';
 const ASSETS = [
   './',
   './index.html',
