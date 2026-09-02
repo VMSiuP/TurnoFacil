@@ -118,15 +118,28 @@
         </div>
 
         <div class="section-label" style="margin-top:1.25rem">Detención</div>
-        <div class="row2">
-          <div class="field">
-            <label for="f-fecha-det">Fecha de detención</label>
-            <input type="date" id="f-fecha-det">
+        <div class="toggle-row" id="toggle-sin-det" onclick="toggleSinDetenido()">
+          <div class="checkmark-box" id="chk-sin-det"></div>
+          <div>
+            <div class="toggle-lbl">Sin detenido</div>
+            <div class="toggle-sub">Solo hecho o denuncia comunicada</div>
           </div>
-          <div class="field">
-            <label for="f-hora-det">Hora de detención</label>
-            <input type="time" id="f-hora-det">
+        </div>
+        <div id="det-fields">
+          <div class="row2">
+            <div class="field">
+              <label for="f-fecha-det">Fecha de detención</label>
+              <input type="date" id="f-fecha-det">
+            </div>
+            <div class="field">
+              <label for="f-hora-det">Hora de detención</label>
+              <input type="time" id="f-hora-det">
+            </div>
           </div>
+        </div>
+        <div id="sin-det-aviso" class="sin-det-badge" style="display:none">
+          <i class="ti ti-info-circle" aria-hidden="true"></i>
+          Caso sin detenido — no genera alerta de 48h
         </div>
 
         <div class="field">
