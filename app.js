@@ -248,7 +248,7 @@ function renderHistorial() {
         <div class="caso-delito">${x.delito}</div>
         <div class="caso-meta">
           ${x.comisaria} · ${formatFecha(x.fechaAviso)} ${x.horaAviso}<br>
-          ${x.polNombre}
+          ${x.polNombre}${x.asignado ? ` · <span style="color:var(--text-muted)">→ ${x.asignado}</span>` : ''}
         </div>
       </div>
       <span class="badge ${bs.cls}">${bs.txt}</span>
@@ -296,10 +296,28 @@ function verCaso(id) {
       <button class="btn" onclick="compartirCaso(${x.id})">
         <i class="ti ti-brand-whatsapp" aria-hidden="true"></i> Compartir
       </button>
+      <div class="asignar-wrap" id="asignar-wrap-${x.id}">
+        <button class="btn btn-asignar" onclick="toggleAsignar(${x.id})">
+          <i class="ti ti-user-check" aria-hidden="true"></i> Asignar
+          <i class="ti ti-chevron-down asignar-chevron" id="chevron-${x.id}" aria-hidden="true"></i>
+        </button>
+        <div class="asignar-menu" id="asignar-menu-${x.id}" style="display:none">
+          ${['Provincial','Adjunto A','Adjunto B'].map(rol => `
+            <button class="asignar-opcion ${x.asignado === rol ? 'asignar-activo' : ''}"
+              onclick="asignarCaso(${x.id},'${rol}')">
+              ${x.asignado === rol ? '<i class="ti ti-check" aria-hidden="true"></i>' : '<i class="ti ti-user" aria-hidden="true"></i>'}
+              ${rol}
+            </button>`).join('')}
+          ${x.asignado ? `<button class="asignar-opcion asignar-quitar" onclick="asignarCaso(${x.id},'')">
+            <i class="ti ti-x" aria-hidden="true"></i> Quitar asignación
+          </button>` : ''}
+        </div>
+      </div>
       <button class="btn btn-danger" onclick="eliminarCaso(${x.id})">
         <i class="ti ti-trash" aria-hidden="true"></i> Eliminar
       </button>
     </div>
+    ${x.asignado ? `<div class="asignado-badge"><i class="ti ti-user-check" aria-hidden="true"></i> Asignado: <strong>${x.asignado}</strong></div>` : ''}
   </div>`;
 }
 
@@ -337,6 +355,7 @@ function compartirCaso(id) {
     x.fechaHecho ? `⏰ *Hecho:* ${formatFecha(x.fechaHecho)} ${x.horaHecho}` : '',
     x.sinDetenido ? `🔒 *Detención:* Sin detenido` : (x.fechaDet ? `🔒 *Detención:* ${formatFecha(x.fechaDet)} ${x.horaDet}` : ''),
     (!x.sinDetenido && x.fechaDet) ? `⏱ *Estado 48h:* ${estadoTexto(h)}` : '',
+    x.asignado   ? `👤 *Asignado:* ${x.asignado}` : '',
     x.obs        ? `📝 *Obs:* ${x.obs}` : '',
   ].filter(Boolean).join('\n');
 
@@ -366,6 +385,7 @@ function exportarTXT() {
       if (x.fechaDet) lines.push(`Detención: ${formatFecha(x.fechaDet)} ${x.horaDet}`);
       if (x.fechaDet) lines.push(`Estado 48h: ${estadoTexto(h)}`);
     }
+    if (x.asignado)   lines.push(`Asignado a: ${x.asignado}`);
     if (x.obs)        lines.push(`Observaciones: ${x.obs}`);
     lines.push('');
   });
@@ -376,6 +396,39 @@ function exportarTXT() {
   a.download = 'turno_facil_' + new Date().toISOString().slice(0, 10) + '.txt';
   a.click();
   toast('✓ Archivo exportado');
+}
+
+// ===== Asignación de caso =====
+function toggleAsignar(id) {
+  const menu = document.getElementById('asignar-menu-' + id);
+  const chevron = document.getElementById('chevron-' + id);
+  const open = menu.style.display === 'none';
+  menu.style.display = open ? 'block' : 'none';
+  chevron.style.transform = open ? 'rotate(180deg)' : '';
+}
+
+function asignarCaso(id, rol) {
+  const idx = casos.findIndex(c => c.id === id);
+  if (idx === -1) return;
+  casos[idx].asignado = rol;
+  save();
+  verCaso(id); // re-render detalle
+  toast(rol ? `✓ Asignado a ${rol}` : 'Asignación quitada');
+}
+
+// ===== Modo oscuro =====
+function applyModo(modo) {
+  document.body.classList.remove('dark', 'light');
+  document.body.classList.add(modo);
+  const icon = document.getElementById('icon-modo');
+  icon.className = modo === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
+  localStorage.setItem('tf_modo', modo);
+}
+
+function toggleModo() {
+  const actual = localStorage.getItem('tf_modo') ||
+    (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  applyModo(actual === 'dark' ? 'light' : 'dark');
 }
 
 // ===== PWA Install =====
@@ -403,6 +456,12 @@ if ('serviceWorker' in navigator) {
 }
 
 // ===== Init =====
+(function initModo() {
+  const saved = localStorage.getItem('tf_modo');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyModo(saved || (prefersDark ? 'dark' : 'light'));
+})();
+
 preFill();
 updateBadge();
 
